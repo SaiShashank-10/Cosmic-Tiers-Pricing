@@ -159,7 +159,7 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      <Navbar />
+  <Navbar hideLinks />
       <ParticlesBG />
       <div className="absolute inset-0 star-gradient -z-10" />
       <div className="absolute inset-0 grid-overlay -z-10 opacity-40" />

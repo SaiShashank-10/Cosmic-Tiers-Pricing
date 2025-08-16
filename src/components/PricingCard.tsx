@@ -30,6 +30,7 @@ export default function PricingCard({ tier, title, price, subtitle, description,
   const zTitle = useMotionValue(0);
   const glowX = useMotionValue(0);
   const glowY = useMotionValue(0);
+  const isGoldLux = tier === "premium";
 
   function onCardMove(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -68,9 +69,41 @@ export default function PricingCard({ tier, title, price, subtitle, description,
         highlight ? "ring-1 ring-purple-400/40" : "",
         tier === "personal" ? "bg-black/40" : "bg-black/30",
         outline === "silver" && "card-outline-silver",
-        outline === "gold" && "card-outline-gold"
+        outline === "gold" && "card-outline-gold",
+        isGoldLux && "overflow-hidden"
       )}
     >
+      {/* Premium Gold Glare overlays */}
+      {isGoldLux && (
+        <>
+          {/* Pointer-following gold sheen across the card */}
+          <motion.div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 rounded-3xl"
+            style={{
+              // Static inner glow; dynamic pointer-based glow removed to satisfy lint and avoid over-brightness
+              boxShadow: "0 0 60px rgba(245,212,107,0.22) inset, 0 0 32px rgba(245,212,107,0.18)",
+              mixBlendMode: "screen",
+              opacity: 0.85,
+            }}
+          />
+          {/* Gold ring accent */}
+          <div className="pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-yellow-300/35 shadow-[0_0_70px_rgba(245,212,107,0.25)_inset,0_0_30px_rgba(245,212,107,0.18)]" aria-hidden />
+          {/* Slow sweeping sheen */}
+          <motion.div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 rounded-3xl"
+            initial={{ x: "-120%" }}
+            animate={{ x: "120%" }}
+            transition={{ repeat: Infinity, duration: 3.8, ease: "linear" }}
+            style={{
+              background: "linear-gradient(110deg, transparent 20%, rgba(255,255,255,0.08) 40%, rgba(245,212,107,0.12) 50%, rgba(255,255,255,0.06) 60%, transparent 80%)",
+              filter: "blur(14px)",
+              opacity: 0.55,
+            }}
+          />
+        </>
+      )}
       {badge && (
         <div className="mb-4 flex justify-center">
           <span className="rounded-full bg-white/10 px-3 py-1 text-xs text-white/80">{badge}</span>
@@ -92,11 +125,26 @@ export default function PricingCard({ tier, title, price, subtitle, description,
             aria-hidden
           />
           <motion.h3
-            style={{ rotateX: rXTitle, rotateY: rYTitle, translateZ: zTitle }}
+            style={{
+              rotateX: rXTitle,
+              rotateY: rYTitle,
+              translateZ: zTitle,
+              ...(isGoldLux
+                ? {
+                    backgroundImage:
+                      "linear-gradient(180deg,#fde68a,#f59e0b), linear-gradient(110deg, transparent 46%, rgba(245,212,107,0.85) 50%, transparent 54%)",
+                    backgroundSize: "100% 100%, 220% 100%",
+                    backgroundRepeat: "no-repeat",
+                    backgroundPosition: "0% 0%, -120% 0%",
+                  }
+                : undefined),
+            }}
+            animate={isGoldLux ? { backgroundPosition: ["0% 0%, -120% 0%", "0% 0%, 120% 0%"] } : undefined}
+            transition={isGoldLux ? { repeat: Infinity, duration: 2.8, ease: "linear" } : undefined}
             className={cn(
-              "text-xl font-semibold leading-none",
+              "text-xl font-semibold leading-none relative inline-block",
               titleAccent === "gold" && "text-transparent bg-clip-text",
-              titleAccent === "gold" && "bg-[linear-gradient(180deg,#fde68a,#f59e0b)]",
+              // base gold gradient is supplied via inline style when premium
               titleAccent === "blue" && "text-white drop-shadow-[0_0_12px_rgba(59,130,246,.35)]"
             )}
           >
@@ -123,7 +171,9 @@ export default function PricingCard({ tier, title, price, subtitle, description,
         })}
       </ul>
 
-      <div className={cn("mt-8", buttonHalo !== "none" && "btn-halo", buttonHalo === "blue" && "btn-halo-blue", buttonHalo === "yellow" && "btn-halo-yellow")}>
+      <div className={cn("mt-8", buttonHalo !== "none" && "btn-halo", buttonHalo === "blue" && "btn-halo-blue", buttonHalo === "yellow" && "btn-halo-yellow")}
+        style={isGoldLux ? { filter: "drop-shadow(0 0 18px rgba(245,212,107,0.35))" } : undefined}
+      >
         <Button onClick={onClick} className="w-full" variant={highlight ? "gradient" : "outline"}>
           {cta}
         </Button>

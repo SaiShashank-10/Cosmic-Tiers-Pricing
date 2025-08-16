@@ -4,50 +4,17 @@ import Navbar from "@/components/Navbar";
 import ParticlesBG from "@/components/ParticlesBG";
 import PricingCard from "@/components/PricingCard";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Toggle from "@/components/Toggle";
 
 export default function Home() {
   const [annual, setAnnual] = useState(true);
+  const router = useRouter();
   // Price type removed (unused)
-
-  async function checkout(plan: "starter" | "premium") {
-    const amount = plan === "starter" ? (annual ? 299 : 699) : annual ? 699 : 1299; // rupees
-    const res = await fetch("/api/checkout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ plan, amount }),
-    });
-    const order = await res.json();
-    if (order?.mock) {
-      alert(`Mock checkout for ${plan} (₹${amount}). Set RAZORPAY_KEY_ID/SECRET to enable real payments.`);
-      return;
-    }
-    const key = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
-    const opts: RazorpayOptions = {
-      key,
-      amount: order.amount,
-      currency: order.currency,
-      name: "Pivien",
-      description: `${plan} plan`,
-      order_id: order.id,
-      handler: function (response) {
-        console.log("Payment success", response);
-        alert("Payment successful!");
-      },
-      prefill: {},
-      theme: { color: "#6366F1" },
-    };
-    if (typeof window !== "undefined" && window.Razorpay) {
-      const rz = new window.Razorpay(opts);
-      rz.open();
-    } else {
-      alert("Razorpay script not loaded.");
-    }
-  }
 
   return (
     <div className="min-h-screen relative overflow-x-hidden">
-      <Navbar />
+  <Navbar hideLinks />
       <div className="absolute inset-0 star-gradient -z-10" />
       <div className="absolute inset-0 grid-overlay -z-10 opacity-40" />
       <ParticlesBG />
@@ -58,11 +25,9 @@ export default function Home() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="mx-auto max-w-3xl text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight"
+            className="mx-auto max-w-3xl text-5xl sm:text-6xl md:text-7xl font-extrabold leading-tight"
           >
-            Security. Privacy. Freedom.
-            <br />
-            for Everyone.
+            Cosmic - Tiers
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 10 }}
@@ -70,7 +35,7 @@ export default function Home() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="mx-auto mt-4 max-w-2xl text-white/70"
           >
-            Select a VPN plan to access your favorite content with lightning speed and unlimited data.
+            Unlock the AI Reality Check agent and elevate your journey with cosmic-level tools and guidance.
           </motion.p>
 
           <div className="mt-6 flex items-center justify-center gap-8 text-sm text-white/70">
@@ -97,7 +62,8 @@ export default function Home() {
               { text: "No Compliance Check", included: false },
               { text: "No Mentoring", included: false },
             ]}
-            cta="★  BUY plan"
+            cta="Sign up"
+            onClick={() => router.push("/signup")}
             outline="silver"
             buttonHalo="blue"
             titleAccent="purple"
@@ -114,10 +80,10 @@ export default function Home() {
               { text: "No Compliance Check", included: false },
               { text: "No Mentoring", included: false },
             ]}
-            cta="★  BUY plan"
+            cta="Sign up"
             highlight
             badge="Best Deal"
-            onClick={() => checkout("starter")}
+            onClick={() => router.push("/signup")}
             outline="silver"
             buttonHalo="blue"
             titleAccent="blue"
@@ -134,8 +100,8 @@ export default function Home() {
               { text: "Unlimited Scenarios", included: true },
               { text: "Priority Mentoring", included: true },
             ]}
-            cta="★  BUY plan"
-            onClick={() => checkout("premium")}
+            cta="Sign up"
+            onClick={() => router.push("/signup")}
             outline="gold"
             buttonHalo="yellow"
             titleAccent="gold"

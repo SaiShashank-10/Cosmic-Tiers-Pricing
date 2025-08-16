@@ -4,9 +4,8 @@ import { Menu, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
-import Button from "./Button";
 
-export default function Navbar() {
+export default function Navbar({ hideLinks = false }: { hideLinks?: boolean }) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   useEffect(() => {
@@ -33,17 +32,19 @@ export default function Navbar() {
           <span className="font-semibold">S-Hatch</span>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-7 text-sm text-white/80">
-          <Link href="#features" className="hover:text-white">Features</Link>
-          <Link href="#download" className="hover:text-white">Download</Link>
-          <Link href="#resources" className="hover:text-white">Resources</Link>
-          <Link href="#pricing" className="hover:text-white">Pricing</Link>
-          <Link href="#business" className="hover:text-white">Business VPN</Link>
-        </nav>
+        {!hideLinks && (
+          <nav className="hidden md:flex items-center gap-7 text-sm text-white/80">
+            <Link href="#features" className="hover:text-white">Features</Link>
+            <Link href="#download" className="hover:text-white">Download</Link>
+            <Link href="#resources" className="hover:text-white">Resources</Link>
+            <Link href="#pricing" className="hover:text-white">Pricing</Link>
+            <Link href="#business" className="hover:text-white">Business VPN</Link>
+          </nav>
+        )}
 
         <div className="hidden md:flex items-center gap-3">
-          <a href="#login" className="btn-outline">Login</a>
-          <a href="#download" className="btn-gradient">Download</a>
+          <a href="#login" className="btn-pill border border-transparent text-white/80 hover:text-white hover:bg-white/10">Login</a>
+          <Link href="/signup" className="btn-gradient btn-pill">Sign up</Link>
         </div>
 
         <button
@@ -69,20 +70,24 @@ export default function Navbar() {
           </button>
         </div>
         <div className="px-6 pb-6 space-y-4">
-          {[
-            { href: "#features", label: "Features" },
-            { href: "#download", label: "Download" },
-            { href: "#resources", label: "Resources" },
-            { href: "#pricing", label: "Pricing" },
-            { href: "#business", label: "Business VPN" },
-          ].map((i) => (
-            <a key={i.href} href={i.href} className="block text-white/90" onClick={() => setOpen(false)}>
-              {i.label}
-            </a>
-          ))}
+          {!hideLinks && (
+            <>
+              {[
+                { href: "#features", label: "Features" },
+                { href: "#download", label: "Download" },
+                { href: "#resources", label: "Resources" },
+                { href: "#pricing", label: "Pricing" },
+                { href: "#business", label: "Business VPN" },
+              ].map((i) => (
+                <a key={i.href} href={i.href} className="block text-white/90" onClick={() => setOpen(false)}>
+                  {i.label}
+                </a>
+              ))}
+            </>
+          )}
           <div className="pt-2 grid grid-cols-2 gap-3">
-            <Button variant="outline" fullWidth>Login</Button>
-            <Button variant="gradient" fullWidth>Download</Button>
+            <a href="#login" onClick={() => setOpen(false)} className="btn-pill border border-transparent text-white/80 hover:text-white hover:bg-white/10 text-center">Login</a>
+            <Link href="/signup" onClick={() => setOpen(false)} className="btn-gradient btn-pill text-center">Sign up</Link>
           </div>
         </div>
       </motion.div>
