@@ -1,26 +1,121 @@
 @import "tailwindcss";
 
+/* Theme tokens */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --navy: #0b0f19; /* background */
+  --muted: #9ca3af;
+  --white: #ffffff;
+  --primary-start: #7c3aed; /* purple */
+  --primary-end: #3b82f6; /* blue */
+  --ring: 0 0% 100% / 0.12;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* shared values */
+:root {
+  --gradient-primary: linear-gradient(135deg, var(--primary-start), var(--primary-end));
+  --shadow-glow: 0 10px 40px rgba(124, 58, 237, 0.35), 0 10px 50px rgba(59, 130, 246, 0.25);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html, body {
+  height: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--navy);
+  color: var(--white);
 }
+
+/* Utilities */
+.container-1200 {
+  max-width: 1200px;
+  margin-inline: auto;
+}
+
+.btn-pill {
+  border-radius: 9999px;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.btn-outline {
+  border: 1px solid rgba(255,255,255,0.2);
+  color: var(--white);
+  background: transparent;
+  backdrop-filter: blur(4px);
+}
+.btn-outline:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+.btn-gradient {
+  background-image: var(--gradient-primary);
+  color: var(--white);
+  box-shadow: var(--shadow-glow);
+}
+
+.card {
+  position: relative;
+  border-radius: 1.5rem;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(0,0,0,0.3);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  color: var(--white);
+}
+
+.card-hover {
+  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+}
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-glow);
+  border-color: rgba(124, 58, 237, 0.6);
+}
+
+/* Outlined cards */
+.card-outline-silver {
+  border-color: rgba(255,255,255,0.18);
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.06) inset, 0 10px 25px rgba(0,0,0,0.35);
+}
+.card-outline-gold {
+  border-color: #f5d46b;
+  box-shadow: 0 0 0 1px rgba(245, 212, 107, 0.4) inset, 0 10px 30px rgba(245, 212, 107, 0.15);
+}
+
+/* Button halo wrappers */
+.btn-halo { position: relative; display: inline-block; width: 100%; }
+.btn-halo::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 9999px;
+  filter: blur(10px);
+  opacity: 0.9;
+  z-index: 0;
+}
+.btn-halo-blue::before {
+  background: radial-gradient(60% 60% at 50% 50%, rgba(96, 165, 250, 0.8), rgba(59, 130, 246, 0.0));
+}
+.btn-halo-yellow::before {
+  background: radial-gradient(60% 60% at 50% 50%, rgba(250, 204, 21, 0.9), rgba(250, 204, 21, 0.0));
+}
+.btn-halo > * { position: relative; z-index: 1; width: 100%; }
+
+.price-blue { color: #60a5fa; }
+.price-yellow { color: #facc15; }
+
+/* Starfield background helpers */
+.star-gradient {
+  background: radial-gradient(1200px 500px at 60% 35%, rgba(129, 140, 248, 0.15), rgba(59, 130, 246, 0) 60%),
+    radial-gradient(800px 400px at 40% 0%, rgba(124, 58, 237, 0.18), rgba(124, 58, 237, 0) 60%);
+}
+
+.grid-overlay {
+  background-image: linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+                     linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(closest-side, rgba(0,0,0,0.4), rgba(0,0,0,0.9));
+}
+

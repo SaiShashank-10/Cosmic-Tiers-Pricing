@@ -1,103 +1,152 @@
-import Image from "next/image";
+"use client";
+import { motion } from "framer-motion";
+import Navbar from "@/components/Navbar";
+import ParticlesBG from "@/components/ParticlesBG";
+import PricingCard from "@/components/PricingCard";
+import { useState } from "react";
+import Toggle from "@/components/Toggle";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [annual, setAnnual] = useState(true);
+  // Price type removed (unused)
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  async function checkout(plan: "starter" | "premium") {
+    const amount = plan === "starter" ? (annual ? 299 : 699) : annual ? 699 : 1299; // rupees
+    const res = await fetch("/api/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plan, amount }),
+    });
+    const order = await res.json();
+    if (order?.mock) {
+      alert(`Mock checkout for ${plan} (₹${amount}). Set RAZORPAY_KEY_ID/SECRET to enable real payments.`);
+      return;
+    }
+    const key = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+    const opts: RazorpayOptions = {
+      key,
+      amount: order.amount,
+      currency: order.currency,
+      name: "Pivien",
+      description: `${plan} plan`,
+      order_id: order.id,
+      handler: function (response) {
+        console.log("Payment success", response);
+        alert("Payment successful!");
+      },
+      prefill: {},
+      theme: { color: "#6366F1" },
+    };
+    if (typeof window !== "undefined" && window.Razorpay) {
+      const rz = new window.Razorpay(opts);
+      rz.open();
+    } else {
+      alert("Razorpay script not loaded.");
+    }
+  }
+
+  return (
+    <div className="min-h-screen relative overflow-x-hidden">
+      <Navbar />
+      <div className="absolute inset-0 star-gradient -z-10" />
+      <div className="absolute inset-0 grid-overlay -z-10 opacity-40" />
+      <ParticlesBG />
+
+      <main className="pt-28 pb-20">
+        <section className="container-1200 px-6 text-center">
+          <motion.h1
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="mx-auto max-w-3xl text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            Security. Privacy. Freedom.
+            <br />
+            for Everyone.
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="mx-auto mt-4 max-w-2xl text-white/70"
           >
-            Read our docs
-          </a>
-        </div>
+            Select a VPN plan to access your favorite content with lightning speed and unlimited data.
+          </motion.p>
+
+          <div className="mt-6 flex items-center justify-center gap-8 text-sm text-white/70">
+            <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-white/50" />Open source</div>
+            <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-white/50" />No-logs policy</div>
+            <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-white/50" />24/7 Live support</div>
+          </div>
+
+          <div className="mt-10 flex items-center justify-center">
+            <Toggle left="Monthly" right="Annually" valueRight={annual} onChange={setAnnual} />
+          </div>
+        </section>
+
+        <section id="pricing" className="container-1200 px-6 mt-14 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+          <PricingCard
+            tier="personal"
+            title="Basic"
+            price={`₹59`}
+            description="Get a quick, simple AI-generated report for one scenario."
+            features={[
+              { text: "Simple AI Report", included: true },
+              { text: "1 Scenario Analysis", included: true },
+              { text: "No HR/Burnout/Runway", included: false },
+              { text: "No Compliance Check", included: false },
+              { text: "No Mentoring", included: false },
+            ]}
+            cta="★  BUY plan"
+            outline="silver"
+            buttonHalo="blue"
+            titleAccent="purple"
+          />
+          <PricingCard
+            tier="starter"
+            title="Standard"
+            price={`₹299`}
+            description="Detailed analysis including HR, burnout, and runway for up to 3 scenarios."
+            features={[
+              { text: "Detailed AI Report", included: true },
+              { text: "HR + Burnout/Runway Analysis", included: true },
+              { text: "Up to 3 Scenarios", included: true },
+              { text: "No Compliance Check", included: false },
+              { text: "No Mentoring", included: false },
+            ]}
+            cta="★  BUY plan"
+            highlight
+            badge="Best Deal"
+            onClick={() => checkout("starter")}
+            outline="silver"
+            buttonHalo="blue"
+            titleAccent="blue"
+            priceClassName="price-blue"
+          />
+          <PricingCard
+            tier="premium"
+            title="Premium"
+            price={`₹599`}
+            description="Full report, compliance check, unlimited scenarios, and priority mentoring."
+            features={[
+              { text: "Full AI Report", included: true },
+              { text: "Compliance Check", included: true },
+              { text: "Unlimited Scenarios", included: true },
+              { text: "Priority Mentoring", included: true },
+            ]}
+            cta="★  BUY plan"
+            onClick={() => checkout("premium")}
+            outline="gold"
+            buttonHalo="yellow"
+            titleAccent="gold"
+            priceClassName="price-yellow"
+          />
+        </section>
+
+        <footer className="container-1200 px-6 mt-20 border-t border-white/10 pt-8 text-center text-white/60">
+          © 2025 Pivien. All rights reserved.
+        </footer>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }

@@ -34,3 +34,14 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Payments (Razorpay)
+
+Server-side order creation is included. To enable real payments:
+
+1. Copy `.env.local.example` to `.env.local` and set:
+	- `RAZORPAY_KEY_ID`
+	- `RAZORPAY_KEY_SECRET`
+	- `NEXT_PUBLIC_RAZORPAY_KEY_ID` (public key for the browser widget)
+2. Restart the dev server.
+3. Click a plan. If keys are missing, the API returns a mock order and you'll see an alert instead of opening Razorpay.
