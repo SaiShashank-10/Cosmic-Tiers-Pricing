@@ -3,6 +3,8 @@ import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import ProfileBadge from "./ProfileBadge";
 import { cn } from "@/lib/utils";
 
 export default function Navbar({ hideLinks = false }: { hideLinks?: boolean }) {
@@ -43,8 +45,8 @@ export default function Navbar({ hideLinks = false }: { hideLinks?: boolean }) {
         )}
 
         <div className="hidden md:flex items-center gap-3">
-          <a href="#login" className="btn-pill border border-transparent text-white/80 hover:text-white hover:bg-white/10">Login</a>
-          <Link href="/signup" className="btn-gradient btn-pill">Sign up</Link>
+          {/* show profile when signed in */}
+          <SessionArea />
         </div>
 
         <button
@@ -69,7 +71,7 @@ export default function Navbar({ hideLinks = false }: { hideLinks?: boolean }) {
             <X className="h-5 w-5" />
           </button>
         </div>
-        <div className="px-6 pb-6 space-y-4">
+          <div className="px-6 pb-6 space-y-4">
           {!hideLinks && (
             <>
               {[
@@ -86,11 +88,40 @@ export default function Navbar({ hideLinks = false }: { hideLinks?: boolean }) {
             </>
           )}
           <div className="pt-2 grid grid-cols-2 gap-3">
-            <a href="#login" onClick={() => setOpen(false)} className="btn-pill border border-transparent text-white/80 hover:text-white hover:bg-white/10 text-center">Login</a>
-            <Link href="/signup" onClick={() => setOpen(false)} className="btn-gradient btn-pill text-center">Sign up</Link>
+            <MobileSessionArea onClose={() => setOpen(false)} />
           </div>
         </div>
       </motion.div>
     </motion.header>
+  );
+}
+
+function SessionArea() {
+  const { data: session } = useSession();
+  if (session?.user) {
+    return <ProfileBadge />;
+  }
+  return (
+    <>
+      <a href="#login" className="btn-pill border border-transparent text-white/80 hover:text-white hover:bg-white/10">Login</a>
+      <Link href="/signup" className="btn-gradient btn-pill">Sign up</Link>
+    </>
+  );
+}
+
+function MobileSessionArea({ onClose }: { onClose?: () => void }) {
+  const { data: session } = useSession();
+  if (session?.user) {
+    return (
+      <div className="col-span-2">
+        <ProfileBadge />
+      </div>
+    );
+  }
+  return (
+    <>
+      <a href="#login" onClick={onClose} className="btn-pill border border-transparent text-white/80 hover:text-white hover:bg-white/10 text-center">Login</a>
+      <Link href="/signup" onClick={onClose} className="btn-gradient btn-pill text-center">Sign up</Link>
+    </>
   );
 }

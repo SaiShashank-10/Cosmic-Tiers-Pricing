@@ -3,32 +3,38 @@ import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import ParticlesBG from "@/components/ParticlesBG";
 import PricingCard from "@/components/PricingCard";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Toggle from "@/components/Toggle";
+import PricingLoader from "@/components/PricingLoader";
+import CosmicTitle from "@/components/CosmicTitle";
 
 export default function Home() {
   const [annual, setAnnual] = useState(true);
   const router = useRouter();
   // Price type removed (unused)
 
+  // Guaranteed splash on initial load / reload
+  const [showSplash, setShowSplash] = useState(true);
+  useEffect(() => {
+    const t = setTimeout(() => setShowSplash(false), 900);
+    return () => clearTimeout(t);
+  }, []);
+
+  if (showSplash) {
+    return <PricingLoader />;
+  }
+
   return (
     <div className="min-h-screen relative overflow-x-hidden">
-  <Navbar hideLinks />
+      <Navbar hideLinks />
       <div className="absolute inset-0 star-gradient -z-10" />
       <div className="absolute inset-0 grid-overlay -z-10 opacity-40" />
       <ParticlesBG />
 
       <main className="pt-28 pb-20">
         <section className="container-1200 px-6 text-center">
-          <motion.h1
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="mx-auto max-w-3xl text-5xl sm:text-6xl md:text-7xl font-extrabold leading-tight"
-          >
-            Cosmic - Tiers
-          </motion.h1>
+          <CosmicTitle text="Cosmic - Tiers" orbit={false} />
           <motion.p
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
