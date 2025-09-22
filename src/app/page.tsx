@@ -69,7 +69,7 @@ export default function Home() {
               { text: "No Mentoring", included: false },
             ]}
             cta="Sign up"
-            onClick={() => router.push("/signup")}
+            onClick={() => router.push("/signup?plan=personal")}
             outline="silver"
             buttonHalo="blue"
             titleAccent="purple"
@@ -89,7 +89,7 @@ export default function Home() {
             cta="Sign up"
             highlight
             badge="Best Deal"
-            onClick={() => router.push("/signup")}
+            onClick={() => router.push("/signup?plan=starter")}
             outline="silver"
             buttonHalo="blue"
             titleAccent="blue"
@@ -107,7 +107,7 @@ export default function Home() {
               { text: "Priority Mentoring", included: true },
             ]}
             cta="Sign up"
-            onClick={() => router.push("/signup")}
+            onClick={() => router.push("/signup?plan=premium")}
             outline="gold"
             buttonHalo="yellow"
             titleAccent="gold"

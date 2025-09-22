@@ -1266,7 +1266,8 @@
 // }
 
 import React, { useEffect, useRef, useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
+import { useSearchParams } from 'next/navigation';
 import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
 
@@ -1617,6 +1618,17 @@ function MinimalAuthPage() {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const { data: session, status } = useSession();
+    const search = useSearchParams();
+    const plan = search?.get('plan') ?? null;
+
+    // When the user becomes authenticated and a plan is present, trigger checkout
+    useEffect(() => {
+      if (status === 'authenticated' && plan) {
+        // trigger checkout flow
+        void initiateCheckout(plan as string);
+      }
+    }, [status, plan]);
 
     function handleGoogleSignIn() {
       setLoading(true);
@@ -1647,6 +1659,56 @@ function MinimalAuthPage() {
         console.error(err);
         setLoading(false);
         alert('Sign-in failed (simulated)');
+      }
+    }
+
+    async function initiateCheckout(plan: string) {
+      try {
+        // map plan to amount (INR)
+        const amounts: Record<string, number> = { personal: 59, starter: 299, premium: 599 };
+        const amount = amounts[plan] ?? 299;
+
+        const res = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ plan, amount }),
+        });
+
+        const json = await res.json();
+        // If mock, show a simple alert or redirect
+        if (json?.mock) {
+          alert('Mock order created. In production this would open Razorpay checkout.');
+          // redirect to home after mock
+          window.location.href = '/';
+          return;
+        }
+
+        // Open Razorpay checkout
+        const options = {
+          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || (window as any).__RAZORPAY_KEY_ID || '',
+          amount: json.amount,
+          currency: json.currency || 'INR',
+          name: 'Pivien',
+          description: `${plan} plan`,
+          order_id: json.id,
+          handler: function (response: any) {
+            // TODO: verify payment server-side; for now, redirect to success
+            window.location.href = '/';
+          },
+          theme: { color: '#2563eb' },
+        } as any;
+
+        if (typeof (window as any).Razorpay === 'function') {
+          const rzp = new (window as any).Razorpay(options);
+          rzp.open();
+        } else {
+          // If Razorpay script not loaded, fallback
+          alert('Razorpay not available - redirecting to home');
+          window.location.href = '/';
+        }
+      } catch (err) {
+        console.error('Checkout error', err);
+        alert('Failed to create order');
       }
     }
 

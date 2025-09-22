@@ -160,16 +160,7 @@ export default function PricingCard({ tier, title, price, subtitle, description,
         {subtitle && <div className="mt-1 text-sm text-white/70">{subtitle}</div>}
       </div>
 
-      <ul className="mt-6 space-y-2">
-        {features.map((f, idx) => {
-          const item: { text: string; included: boolean } = typeof f === "string" ? { text: f, included: true } : f;
-          return (
-            <FeatureRow key={idx} included={item.included}>
-              {item.text}
-            </FeatureRow>
-          );
-        })}
-      </ul>
+      {/* features intentionally removed per design request */}
 
       <div className={cn("mt-8", buttonHalo !== "none" && "btn-halo", buttonHalo === "blue" && "btn-halo-blue", buttonHalo === "yellow" && "btn-halo-yellow")}
         style={isGoldLux ? { filter: "drop-shadow(0 0 18px rgba(245,212,107,0.35))" } : undefined}
