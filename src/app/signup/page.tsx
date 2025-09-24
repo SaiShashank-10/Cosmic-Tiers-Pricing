@@ -1269,7 +1269,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { signIn, useSession } from 'next-auth/react';
 import { auth } from '@/lib/firebaseClient';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
 
@@ -1621,7 +1621,8 @@ function MinimalAuthPage() {
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const { data: session, status } = useSession();
-    const search = useSearchParams();
+  const search = useSearchParams();
+  const router = useRouter();
     const plan = search?.get('plan') ?? null;
 
     // When the user becomes authenticated and a plan is present, trigger checkout
@@ -1658,14 +1659,18 @@ function MinimalAuthPage() {
         try {
           await createUserWithEmailAndPassword(auth, emailAddr, password);
           setLoading(false);
-          alert(`Account created and signed in as ${emailAddr}`);
+          // Redirect to pricing/home after successful signup
+          router.push('/');
+          return;
         } catch (createErr: any) {
           // If account already exists, try sign-in
           if (createErr?.code === 'auth/email-already-in-use') {
             try {
               await signInWithEmailAndPassword(auth, emailAddr, password);
               setLoading(false);
-              alert(`Signed in as ${emailAddr}`);
+              // Redirect to pricing/home after successful sign-in
+              router.push('/');
+              return;
             } catch (signInErr: any) {
               console.error('Firebase sign in failed', signInErr);
               setLoading(false);

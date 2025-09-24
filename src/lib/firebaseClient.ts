@@ -25,3 +25,4 @@ try {
 const auth = getAuth(app as any);
 
 export { auth };
+
