@@ -1,9 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
 import { SessionProvider } from "next-auth/react";
+import { Session } from "next-auth"; // 1. Import the Session type
 import SplashLoader from "./SplashLoader";
 
-type Props = { children: React.ReactNode; session?: any };
+// 2. Use the imported Session type instead of 'any'
+type Props = { children: React.ReactNode; session?: Session | null };
 
 // Shows the splash loader once per session for at least minDuration ms
 export default function RootClient({ children, session }: Props) {
