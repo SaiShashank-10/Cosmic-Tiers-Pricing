@@ -26,6 +26,7 @@ export async function POST(req: NextRequest) {
         amount: displayAmount * 100,
         currency: "INR",
         mock: true,
+        key_id: key_id ?? null,
         message: "Razorpay keys not set. Returning mock order. Set RAZORPAY_KEY_ID/RAZORPAY_KEY_SECRET to enable real payments.",
       },
       { status: 200 }
@@ -41,7 +42,9 @@ export async function POST(req: NextRequest) {
       notes: { plan },
     });
 
-    return NextResponse.json(order, { status: 200 });
+    // Include the public key (key_id) in the response so clients can initialize Razorpay
+    const payload = { ...order, key_id } as any;
+    return NextResponse.json(payload, { status: 200 });
   } catch (err) {
     console.error("Razorpay order error", err);
     return NextResponse.json({ error: "Failed to create order" }, { status: 500 });

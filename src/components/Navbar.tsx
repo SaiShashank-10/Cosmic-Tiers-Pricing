@@ -5,11 +5,14 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import ProfileBadge from "./ProfileBadge";
+import useFirebaseUser from '@/lib/useFirebaseAuth';
 import { cn } from "@/lib/utils";
 
-export default function Navbar({ hideLinks = false }: { hideLinks?: boolean }) {
+export default function Navbar({ hideLinks = false, hideLogin = false }: { hideLinks?: boolean; hideLogin?: boolean }) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const { data: session } = useSession();
+  const fbUser = useFirebaseUser();
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
     onScroll();
@@ -45,8 +48,12 @@ export default function Navbar({ hideLinks = false }: { hideLinks?: boolean }) {
         )}
 
         <div className="hidden md:flex items-center gap-3">
-          {/* show profile when signed in */}
-          <SessionArea />
+          {/* show profile when signed in; optionally hide the Login link */}
+          <SessionArea hideLogin={hideLogin} />
+          {/* Prominent Sign up CTA for unauthenticated users (desktop) */}
+          {!session?.user && !fbUser && (
+            <Link href="/signup" className="ml-2 btn-gradient btn-pill">Sign up</Link>
+          )}
         </div>
 
         <button
@@ -88,7 +95,7 @@ export default function Navbar({ hideLinks = false }: { hideLinks?: boolean }) {
             </>
           )}
           <div className="pt-2 grid grid-cols-2 gap-3">
-            <MobileSessionArea onClose={() => setOpen(false)} />
+            <MobileSessionArea onClose={() => setOpen(false)} hideLogin={hideLogin} />
           </div>
         </div>
       </motion.div>
@@ -96,22 +103,26 @@ export default function Navbar({ hideLinks = false }: { hideLinks?: boolean }) {
   );
 }
 
-function SessionArea() {
+function SessionArea({ hideLogin = false }: { hideLogin?: boolean }) {
   const { data: session } = useSession();
-  if (session?.user) {
+  const fbUser = useFirebaseUser();
+  if (session?.user || fbUser) {
     return <ProfileBadge />;
   }
   return (
     <>
-      <a href="#login" className="btn-pill border border-transparent text-white/80 hover:text-white hover:bg-white/10">Login</a>
+      {!hideLogin && (
+        <a href="#login" className="btn-pill border border-transparent text-white/80 hover:text-white hover:bg-white/10">Login</a>
+      )}
       <Link href="/signup" className="btn-gradient btn-pill">Sign up</Link>
     </>
   );
 }
 
-function MobileSessionArea({ onClose }: { onClose?: () => void }) {
+function MobileSessionArea({ onClose, hideLogin = false }: { onClose?: () => void; hideLogin?: boolean }) {
   const { data: session } = useSession();
-  if (session?.user) {
+  const fbUser = useFirebaseUser();
+  if (session?.user || fbUser) {
     return (
       <div className="col-span-2">
         <ProfileBadge />
@@ -120,7 +131,9 @@ function MobileSessionArea({ onClose }: { onClose?: () => void }) {
   }
   return (
     <>
-      <a href="#login" onClick={onClose} className="btn-pill border border-transparent text-white/80 hover:text-white hover:bg-white/10 text-center">Login</a>
+      {!hideLogin && (
+        <a href="#login" onClick={onClose} className="btn-pill border border-transparent text-white/80 hover:text-white hover:bg-white/10 text-center">Login</a>
+      )}
       <Link href="/signup" onClick={onClose} className="btn-gradient btn-pill text-center">Sign up</Link>
     </>
   );

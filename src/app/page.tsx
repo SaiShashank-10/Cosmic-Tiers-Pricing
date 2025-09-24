@@ -5,6 +5,7 @@ import ParticlesBG from "@/components/ParticlesBG";
 import PricingCard from "@/components/PricingCard";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Toggle from "@/components/Toggle";
 import PricingLoader from "@/components/PricingLoader";
 import CosmicTitle from "@/components/CosmicTitle";
@@ -12,6 +13,7 @@ import CosmicTitle from "@/components/CosmicTitle";
 export default function Home() {
   const [annual, setAnnual] = useState(true);
   const router = useRouter();
+  const { data: session, status } = useSession();
   // Price type removed (unused)
 
   // Guaranteed splash on initial load / reload
@@ -27,7 +29,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen relative overflow-x-hidden">
-      <Navbar hideLinks />
+  <Navbar hideLinks />
       <div className="absolute inset-0 star-gradient -z-10" />
       <div className="absolute inset-0 grid-overlay -z-10 opacity-40" />
       <ParticlesBG />
@@ -68,8 +70,59 @@ export default function Home() {
               { text: "No Compliance Check", included: false },
               { text: "No Mentoring", included: false },
             ]}
-            cta="Sign up"
-            onClick={() => router.push("/signup?plan=personal")}
+            cta={session?.user ? "Buy Now" : "Sign up"}
+            onClick={async () => {
+              if (session?.user) {
+                // user is signed in -> create order and open Razorpay
+                await (async function initiateCheckout(plan: string) {
+                  try {
+                    const amounts: Record<string, number> = { personal: 59, starter: 299, premium: 599 };
+                    const amount = amounts[plan] ?? 299;
+                    const res = await fetch('/api/checkout', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ plan, amount }),
+                    });
+                    const json = await res.json();
+                    if (json?.mock) {
+                      alert('Mock order created. In production this would open Razorpay checkout.');
+                      router.push('/');
+                      return;
+                    }
+                    const keyVal = (json && json.key_id) || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || (window as any).__RAZORPAY_KEY_ID || '';
+                    if (!keyVal) {
+                      alert('Payment configuration missing. Ask the admin to set RAZORPAY keys.');
+                      router.push('/');
+                      return;
+                    }
+                    const options = {
+                      key: keyVal,
+                      amount: json.amount,
+                      currency: json.currency || 'INR',
+                      name: 'Pivien',
+                      description: `${plan} plan`,
+                      order_id: json.id,
+                      handler: function (response: any) {
+                        window.location.href = '/';
+                      },
+                      theme: { color: '#2563eb' },
+                    } as any;
+                    if (typeof (window as any).Razorpay === 'function') {
+                      const rzp = new (window as any).Razorpay(options);
+                      rzp.open();
+                    } else {
+                      alert('Razorpay not available - redirecting to home');
+                      router.push('/');
+                    }
+                  } catch (err) {
+                    console.error('Checkout error', err);
+                    alert('Failed to create order');
+                  }
+                })('personal');
+              } else {
+                router.push('/signup?plan=personal');
+              }
+            }}
             outline="silver"
             buttonHalo="blue"
             titleAccent="purple"
@@ -86,10 +139,60 @@ export default function Home() {
               { text: "No Compliance Check", included: false },
               { text: "No Mentoring", included: false },
             ]}
-            cta="Sign up"
+            cta={session?.user ? "Buy Now" : "Sign up"}
             highlight
             badge="Best Deal"
-            onClick={() => router.push("/signup?plan=starter")}
+            onClick={async () => {
+              if (session?.user) {
+                await (async function initiateCheckout(plan: string) {
+                  try {
+                    const amounts: Record<string, number> = { personal: 59, starter: 299, premium: 599 };
+                    const amount = amounts[plan] ?? 299;
+                    const res = await fetch('/api/checkout', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ plan, amount }),
+                    });
+                    const json = await res.json();
+                    if (json?.mock) {
+                      alert('Mock order created. In production this would open Razorpay checkout.');
+                      router.push('/');
+                      return;
+                    }
+                    const keyVal = (json && json.key_id) || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || (window as any).__RAZORPAY_KEY_ID || '';
+                    if (!keyVal) {
+                      alert('Payment configuration missing. Ask the admin to set RAZORPAY keys.');
+                      router.push('/');
+                      return;
+                    }
+                    const options = {
+                      key: keyVal,
+                      amount: json.amount,
+                      currency: json.currency || 'INR',
+                      name: 'Pivien',
+                      description: `${plan} plan`,
+                      order_id: json.id,
+                      handler: function (response: any) {
+                        window.location.href = '/';
+                      },
+                      theme: { color: '#2563eb' },
+                    } as any;
+                    if (typeof (window as any).Razorpay === 'function') {
+                      const rzp = new (window as any).Razorpay(options);
+                      rzp.open();
+                    } else {
+                      alert('Razorpay not available - redirecting to home');
+                      router.push('/');
+                    }
+                  } catch (err) {
+                    console.error('Checkout error', err);
+                    alert('Failed to create order');
+                  }
+                })('starter');
+              } else {
+                router.push('/signup?plan=starter');
+              }
+            }}
             outline="silver"
             buttonHalo="blue"
             titleAccent="blue"
@@ -106,8 +209,58 @@ export default function Home() {
               { text: "Unlimited Scenarios", included: true },
               { text: "Priority Mentoring", included: true },
             ]}
-            cta="Sign up"
-            onClick={() => router.push("/signup?plan=premium")}
+            cta={session?.user ? "Buy Now" : "Sign up"}
+            onClick={async () => {
+              if (session?.user) {
+                await (async function initiateCheckout(plan: string) {
+                  try {
+                    const amounts: Record<string, number> = { personal: 59, starter: 299, premium: 599 };
+                    const amount = amounts[plan] ?? 299;
+                    const res = await fetch('/api/checkout', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ plan, amount }),
+                    });
+                    const json = await res.json();
+                    if (json?.mock) {
+                      alert('Mock order created. In production this would open Razorpay checkout.');
+                      router.push('/');
+                      return;
+                    }
+                    const keyVal = (json && json.key_id) || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || (window as any).__RAZORPAY_KEY_ID || '';
+                    if (!keyVal) {
+                      alert('Payment configuration missing. Ask the admin to set RAZORPAY keys.');
+                      router.push('/');
+                      return;
+                    }
+                    const options = {
+                      key: keyVal,
+                      amount: json.amount,
+                      currency: json.currency || 'INR',
+                      name: 'Pivien',
+                      description: `${plan} plan`,
+                      order_id: json.id,
+                      handler: function (response: any) {
+                        window.location.href = '/';
+                      },
+                      theme: { color: '#2563eb' },
+                    } as any;
+                    if (typeof (window as any).Razorpay === 'function') {
+                      const rzp = new (window as any).Razorpay(options);
+                      rzp.open();
+                    } else {
+                      alert('Razorpay not available - redirecting to home');
+                      router.push('/');
+                    }
+                  } catch (err) {
+                    console.error('Checkout error', err);
+                    alert('Failed to create order');
+                  }
+                })('premium');
+              } else {
+                router.push('/signup?plan=premium');
+              }
+            }}
             outline="gold"
             buttonHalo="yellow"
             titleAccent="gold"

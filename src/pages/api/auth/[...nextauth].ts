@@ -12,5 +12,20 @@ export default NextAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
     }),
   ],
-  // Add any callbacks or session config as needed
+  callbacks: {
+    // Ensure redirects after sign-in honor the callbackUrl or fall back to baseUrl
+    async redirect({ url, baseUrl }) {
+      try {
+        if (!url) return baseUrl;
+        // If url is relative, join with baseUrl
+        if (url.startsWith('/')) return `${baseUrl}${url}`;
+        // If url is already absolute and within baseUrl, allow it
+        if (url.startsWith(baseUrl)) return url;
+        // Otherwise default to baseUrl for safety
+        return baseUrl;
+      } catch (err) {
+        return baseUrl;
+      }
+    },
+  },
 });

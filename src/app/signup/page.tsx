@@ -1267,6 +1267,8 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { signIn, useSession } from 'next-auth/react';
+import { auth } from '@/lib/firebaseClient';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { useSearchParams } from 'next/navigation';
 import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
@@ -1614,7 +1616,7 @@ const Particles: React.FC<ParticlesProps> = ({
 };
 
 function MinimalAuthPage() {
-    const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
@@ -1645,20 +1647,40 @@ function MinimalAuthPage() {
       e.preventDefault();
       setLoading(true);
       // basic client-side validation
-      if (!username.trim() || !password) {
+      if (!email.trim() || !password) {
         setLoading(false);
-        alert('Please enter username and password');
+        alert('Please enter email and password');
         return;
       }
-      // Simulate async sign-in; replace with real API call
       try {
-        await new Promise((res) => setTimeout(res, 800));
-        setLoading(false);
-        alert(`Signed in as ${username} (simulated)`);
+        // Use provided email to create account; if already exists, sign in
+        const emailAddr = email.trim();
+        try {
+          await createUserWithEmailAndPassword(auth, emailAddr, password);
+          setLoading(false);
+          alert(`Account created and signed in as ${emailAddr}`);
+        } catch (createErr: any) {
+          // If account already exists, try sign-in
+          if (createErr?.code === 'auth/email-already-in-use') {
+            try {
+              await signInWithEmailAndPassword(auth, emailAddr, password);
+              setLoading(false);
+              alert(`Signed in as ${emailAddr}`);
+            } catch (signInErr: any) {
+              console.error('Firebase sign in failed', signInErr);
+              setLoading(false);
+              alert('Sign-in failed: ' + (signInErr?.message || signInErr));
+            }
+          } else {
+              console.error('Firebase create failed', createErr);
+            setLoading(false);
+              alert('Failed to create account: ' + (createErr?.message || createErr));
+          }
+        }
       } catch (err) {
-        console.error(err);
+              console.error(err);
         setLoading(false);
-        alert('Sign-in failed (simulated)');
+        alert('Unexpected error during sign-up');
       }
     }
 
@@ -1685,7 +1707,7 @@ function MinimalAuthPage() {
 
         // Open Razorpay checkout
         const options = {
-          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || (window as any).__RAZORPAY_KEY_ID || '',
+          key: (json && json.key_id) || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || (window as any).__RAZORPAY_KEY_ID || '',
           amount: json.amount,
           currency: json.currency || 'INR',
           name: 'Pivien',
@@ -1730,7 +1752,7 @@ function MinimalAuthPage() {
       </div>
       <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col justify-center px-4">
         <Button variant="ghost" className="absolute top-4 left-4" asChild>
-          <a href="#">
+          <a href="/">
             <ChevronLeftIcon className="me-1 size-4" />
             Home
           </a>
@@ -1778,16 +1800,16 @@ function MinimalAuthPage() {
             
             <form className="space-y-3" onSubmit={handleSubmit}>
               <div className="space-y-1">
-                <label htmlFor="username" className="text-sm font-medium">
-                  Username
+                <label htmlFor="email" className="text-sm font-medium">
+                  Email
                 </label>
                 <input
-                  id="username"
-                  name="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  type="text"
-                  placeholder="Enter your username"
+                  id="email"
+                  name="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  type="email"
+                  placeholder="jane@startup.com"
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
@@ -1827,14 +1849,14 @@ function MinimalAuthPage() {
           <p className="text-muted-foreground mt-8 text-sm">
             By clicking continue, you agree to our{' '}
             <a
-              href="#"
+              href="/"
               className="hover:text-primary underline underline-offset-4"
             >
               Terms of Service
             </a>{' '}
             and{' '}
             <a
-              href="#"
+              href="/"
               className="hover:text-primary underline underline-offset-4"
             >
               Privacy Policy
